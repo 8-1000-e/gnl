@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line_utils.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: edubois- <edubois-@student.42angouleme>    +#+  +:+       +#+        */
+/*   By: edubois- <edubois-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 01:37:15 by edubois-          #+#    #+#             */
-/*   Updated: 2024/10/16 17:16:23 by edubois-         ###   ########.fr       */
+/*   Updated: 2024/10/18 16:55:00 by edubois-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ char	*ft_strjoin(char *s1, char *s2)
 	char	*str;
 	char	*save_str;
     char    *save_s1;
+	
 	str = malloc (ft_strlen(s1) + ft_strlen(s2) + 1);
 	if (!str)
 	{
