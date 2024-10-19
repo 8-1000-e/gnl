@@ -6,7 +6,7 @@
 /*   By: edubois- <edubois-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 01:37:15 by edubois-          #+#    #+#             */
-/*   Updated: 2024/10/18 16:55:00 by edubois-         ###   ########.fr       */
+/*   Updated: 2024/10/19 22:13:42 by edubois-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ char	*ft_strjoin(char *s1, char *s2)
 		while (*s1)
 			*str++ = *s1++;
 	}
-	while (*s2)
+	while (s2 && *s2)
 		*str++ = *s2++;
 	*str = '\0';
     if (save_s1)
@@ -58,21 +58,40 @@ int	next_line_in_buf(char *buf)
 	while (*buf && *buf != '\n')
 		buf++;
 	if (!*buf)
-		return (0);
+d		return (0);
 	return (1);
 }
 
-char	*cut_next_line(char *buf)
+char	*cut_next_line(char *line, char *buf)
 {
 	char	*save_buf;
-
-	save_buf = buf;
-	while (*buf && *buf != '\n')
-		buf++;
-	if (*buf && *++buf)
+	char	*save_new;
+	
+	save_buf = line;
+	while (*line && *line != '\n')
+		line++;
+	save_new = line;
+	while (*++line)
+		*buf++ = *line;
+	while (*buf)
+		*buf++ = '\0';
+	line = save_new;
+	if (*line && *++line)
 	{
-		while (*buf)
-			*buf = '\0';
+		while (*line)
+			*line = '\0';
 	}
+	
 	return (save_buf);
+}
+void	*ft_memset(void *s, int c, size_t n)
+{
+	void	*clone;
+
+	if (!s)
+		return (NULL);
+	clone = s;
+	while (n--)
+		*(unsigned char *)s++ = c;
+	return (clone);
 }

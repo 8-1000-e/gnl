@@ -6,7 +6,7 @@
 /*   By: edubois- <edubois-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 01:33:59 by edubois-          #+#    #+#             */
-/*   Updated: 2024/10/18 18:01:04 by edubois-         ###   ########.fr       */
+/*   Updated: 2024/10/19 21:15:38 by edubois-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,14 @@ char	*ft_memcpy(char *dest, char *src)
 
 	clone = dest;
 	while (*src && *src != '\n')
-		src++;
-	while (*++src)
-		*dest++ = *src;
+		*dest++ = *src++;
+	if (*src == '\n')
+		*dest++ = *src++;
 	*dest = '\0';
 	return (clone);
 }
 
-char *invalid_empty_read(int b, char *line, char *save_old_line)
+char *invalid_empty_read(char *buf, int b, char *line, char *save_old_line)
 {
 	if (save_old_line)
 			free(save_old_line);
@@ -35,8 +35,10 @@ char *invalid_empty_read(int b, char *line, char *save_old_line)
 			free(line);
 		return (NULL);	
 	}
+	ft_memset(buf, 0, BUFFER_SIZE + 1);
 	return (line);
 }
+
 char *get_following_line(int fd, char *buf, char *save_old_line, char *line)
 {
 	int	b;
@@ -44,28 +46,29 @@ char *get_following_line(int fd, char *buf, char *save_old_line, char *line)
 	b = 0;
 	while (1)
 		{
-			b = read(fd, buf, BUFFER_SIZE);
-			if (b == -1)
-				return (invalid_empty_read(b, line, save_old_line));
-			if (!b)
-				return (invalid_empty_read(b, line, save_old_line));
 			if (save_old_line)
 			{
-				line = ft_strjoin(save_old_line, buf);
+				line = ft_strjoin(save_old_line, 0);
 				save_old_line = NULL;
 			}
-			else
+			b = read(fd, buf, BUFFER_SIZE);
+			if (b == -1)
+				return (invalid_empty_read(buf, b, line, save_old_line));
+			if (!b && !next_line_in_buf(buf))
+				return (invalid_empty_read(buf, b, line, save_old_line));
+			if (!save_old_line)
 				line = ft_strjoin(line, buf);
+			ft_memset(buf, 0, BUFFER_SIZE + 1);
 			if (!line)
 				return (NULL);
 			if (next_line_in_buf(line))
-				return (cut_next_line(line));
+				return (cut_next_line(line, buf));
 		}
 }
 
 char	*get_next_line(int fd)
 {
-	static char	buf[BUFFER_SIZE];
+	static char	buf[BUFFER_SIZE + 1] = {0};
 	char		*line;
 	char		*save_old_line;
 		
@@ -80,21 +83,26 @@ char	*get_next_line(int fd)
 		}
 		return (get_following_line(fd, buf, save_old_line, line));
 }
-// #include "get_next_line.h"
-// #include <stdio.h>
-// #include <fcntl.h>
 
-// int	main()
-// {
-// 	char *s;
+#include "get_next_line.h"
+#include <stdio.h>
+#include <fcntl.h>
 
-// 	int	fd = open("test.txt", O_RDONLY); 
-	
-// 	s = get_next_line(fd);
-// 	while (s)
-// 	{
-// 		printf("%s", s);
-// 		s = get_next_line(fd);
-// 	}
+int main()
+{
+	char *s;
+	int	i;
 
-// }
+	i = 0;
+	int fd = open("test.txt", O_RDONLY);
+
+	s = get_next_line(fd);
+	while (s)
+	{
+		printf("%s|, %d", s, i);
+		free(s);
+		i++;
+		s = get_next_line(fd);
+	}
+	close(fd);
+}
