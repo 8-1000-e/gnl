@@ -6,7 +6,7 @@
 /*   By: edubois- <edubois-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/16 01:33:59 by edubois-          #+#    #+#             */
-/*   Updated: 2024/10/19 21:15:38 by edubois-         ###   ########.fr       */
+/*   Updated: 2024/10/21 06:27:01 by edubois-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,84 +25,125 @@ char	*ft_memcpy(char *dest, char *src)
 	return (clone);
 }
 
-char *invalid_empty_read(char *buf, int b, char *line, char *save_old_line)
+char	*ft_strjoin(char *s1, char *s2)
 {
-	if (save_old_line)
-			free(save_old_line);
-	if (b == -1)
-	{
-		if (line)
-			free(line);
-		return (NULL);	
-	}
-	ft_memset(buf, 0, BUFFER_SIZE + 1);
-	return (line);
+	char	*str;
+	char	*save_str;
+	char 	*s1_tmp;
+
+	s1_tmp = s1;
+	str = malloc (ft_strlen(s1) + ft_strlen(s2) + 1);
+	if (!str)
+		return (NULL);
+	save_str = str;
+	while (s1 && *s1)
+		*str++ = *s1++;
+	while (s2 && *s2)
+		*str++ = *s2++;
+	*str = '\0';
+	if (s1_tmp)
+		free(s1_tmp);
+	return (save_str);
 }
 
-char *get_following_line(int fd, char *buf, char *save_old_line, char *line)
+char	*cut_at_next_line(char *line)
+{
+	while (line && *line && *line != '\n')
+			line++;
+	if (line && *line)
+		return (++line);
+	return (NULL);
+	
+}
+
+void delete_old_line(char *line, char *buf)
+{
+	line = cut_at_next_line(line);
+	while (line && *line)
+	{
+			*buf++ = *line;
+			*line++ = '\0';
+	}
+	*buf = '\0';
+}
+
+int	ft_strcmp(char *s1, char *s2)
+{
+	char *save_s1;
+	
+	save_s1 = s1;
+	while (s1 && *s1 && *s2 && *s1 == *s2)
+	{
+		s1++;
+		s2++;
+	}
+	if (s1 && !*s1 && !*s2)
+	{	
+		free(save_s1);
+		return (1);
+	}
+	return (0);
+}
+
+char	*get_following_line(int	fd, char *buf, char *line)
 {
 	int	b;
 
-	b = 0;
-	while (1)
-		{
-			if (save_old_line)
-			{
-				line = ft_strjoin(save_old_line, 0);
-				save_old_line = NULL;
-			}
-			b = read(fd, buf, BUFFER_SIZE);
-			if (b == -1)
-				return (invalid_empty_read(buf, b, line, save_old_line));
-			if (!b && !next_line_in_buf(buf))
-				return (invalid_empty_read(buf, b, line, save_old_line));
-			if (!save_old_line)
-				line = ft_strjoin(line, buf);
-			ft_memset(buf, 0, BUFFER_SIZE + 1);
-			if (!line)
-				return (NULL);
-			if (next_line_in_buf(line))
-				return (cut_next_line(line, buf));
-		}
+	b = 1;
+	while (b > 0)
+	{
+		if (cut_at_next_line(line))
+			break ;
+		ft_memset(buf, 0, BUFFER_SIZE);
+		b = read(fd, buf, BUFFER_SIZE);
+		line = ft_strjoin(line, buf);
+		if (!line || ft_strcmp(line, ""))
+			return (NULL);
+	}
+	if (b == -1)
+	{
+		free(line);
+		return (NULL);
+	}
+	if (!b)
+	{
+		buf = NULL;
+		return(line);
+	}
+	delete_old_line(line, buf);
+	return (line);
 }
 
 char	*get_next_line(int fd)
 {
 	static char	buf[BUFFER_SIZE + 1] = {0};
 	char		*line;
-	char		*save_old_line;
 		
 		line = NULL;
-		save_old_line = NULL;
-		if (buf[0])
+		if (ft_strlen(buf))
 		{
-			save_old_line = malloc(BUFFER_SIZE + 1);
-			if (!save_old_line)
+			line = ft_strjoin(line, buf);
+			if (!line)
 				return (NULL);
-			ft_memcpy(save_old_line, buf);
 		}
-		return (get_following_line(fd, buf, save_old_line, line));
+		return (get_following_line(fd, buf, line));
 }
 
 #include "get_next_line.h"
 #include <stdio.h>
 #include <fcntl.h>
-
-int main()
-{
-	char *s;
-	int	i;
-
-	i = 0;
-	int fd = open("test.txt", O_RDONLY);
-
-	s = get_next_line(fd);
-	while (s)
-	{
-		printf("%s|, %d", s, i);
-		free(s);
-		i++;
-		s = get_next_line(fd);
-	}
-	close(fd);
-}
+// 
+// int main(int argc, char **argv)
+// {	
+	// (void) argc;
+	// char *s;
+	// int fd = open(argv[1], O_RDONLY);
+	// s = get_next_line(fd);
+	// while (s)
+	// {
+		// printf("%s ", s);
+		// free(s);
+		// s = get_next_line(fd);
+	// }
+	// close(fd);
+// }
